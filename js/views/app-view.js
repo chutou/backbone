@@ -110,6 +110,7 @@ var app = app || {};
     //需要浏览器支持html5才能用。
 		createOnEnter: function (e) {
 			if (e.which === ENTER_KEY && this.$input.val().trim()) {
+				//创建一个对象之后会在backbone中动态调用Todos的add方法，该方法已绑定addOne。
 				app.todos.create(this.newAttributes());
 				this.$input.val('');
 			}
