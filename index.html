@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" data-framework="backbonejs">
+	<head>
+		<meta charset="utf-8">
+		<title>Backbone.js • TodoMVC</title>
+		<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
+		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
+		<style type="text/css">
+			.todo-list li button.edit-btn{
+				display: none;
+			}
+			.todo-list li:hover button.edit-btn{
+				display: block;
+				height: 40px;
+				width: 40px;
+				position: absolute;
+				top: 0;
+				right: 50px;
+				bottom: 0;
+				background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAnFBMVEUAAAB/f39VVVU/f39mZmZIbW1fX39UcXFMZn9bbX9UbXlRaH9Ta3pUbHpTb3hUbXhTbHpTbHlTbHpUbXpUbXpUbXlUbnpUbXpSbXhSbnlUbnlTbXlUbXlTbnpUbXpTbnhUbXhUbnpTbXpUbnlTbnlUbXlUbHlSbXpUbHpUbnpUbHpSbnpUbHhTbXhTbHpUbnlSbHlSbnpSbHpUbHgGNdXDAAAANHRSTlMAAgMEBQcICQoOFRY0NjdISVJucHmClJqhpKaoqquztLi5uru9v8HGyM7T1dri6Onr8Pb7ls2umQAAAHRJREFUGFddx+sCgTAABtDPRkVsKsUo6Z5LC73/u/nDLs6/AyhuOrW+LtxSePFtpe6UFQHiWj+XHFi+1QVhktPs8H0hCMBkky+MgxZ/z36/2J+d7WPX25+/xq15bK5s5I4+ogTs+TiqIxX7+xBA607hmhr/ADYjCc2SbhlgAAAAAElFTkSuQmCC) no-repeat center 18px;
+			}
+		</style>
+	</head>
+	<body>
+		<section class="todoapp">
+			<header class="header">
+				<h1>todos</h1>
+				<input class="new-todo" placeholder="What needs to be done?" autofocus>
+			</header>
+			<section class="main">
+				<input class="toggle-all" type="checkbox">
+				<label for="toggle-all">Mark all as complete</label>
+				<ul class="todo-list"></ul>
+			</section>
+			<footer class="footer"></footer>
+		</section>
+		<footer class="info">
+			<p>Double-click to edit a todo</p>
+			<p>Written by <a href="https://github.com/addyosmani">Addy Osmani</a></p>
+			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+		</footer>
+		<script type="text/template" id="item-template">
+			<div class="view">
+				<input class="toggle" type="checkbox" <%= completed ? 'checked' : '' %>>
+				<label><%- title %></label>
+				<button class="edit-btn"></button>
+				<button class="destroy"></button>
+			</div>
+			<input class="edit" value="<%- title %>">
+		</script>
+		<script type="text/template" id="stats-template">
+			<span class="todo-count"><strong><%= remaining %></strong> <%= remaining === 1 ? 'item' : 'items' %> left</span>
+			<ul class="filters">
+				<li>
+					<a class="selected" href="#/">All</a>
+				</li>
+				<li>
+					<a href="#/active">Active</a>
+				</li>
+				<li>
+					<a href="#/completed">Completed</a>
+				</li>
+			</ul>
+			<% if (completed) { %>
+			<span style="float: right"><%= completed %></span>
+			<button class="clear-completed">Clear completed</button>
+			<% } %>
+		</script>
+		<script src="node_modules/todomvc-common/base.js"></script>
+		<script src="node_modules/jquery/dist/jquery.js"></script>
+		<script src="node_modules/underscore/underscore.js"></script>
+		<script src="node_modules/backbone/backbone.js"></script>
+		<script src="node_modules/backbone.localstorage/backbone.localStorage.js"></script>
+		<script src="js/models/todo.js"></script>
+		<script src="js/collections/todos.js"></script>
+		<script src="js/views/todo-view.js"></script>
+		<script src="js/views/app-view.js"></script>
+		<script src="js/routers/router.js"></script>
+		<script src="js/app.js"></script>
+	</body>
+</html>

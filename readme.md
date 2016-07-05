@@ -404,3 +404,236 @@ Model这个概念在我的印象中是来自于MVC这个东西，Model在其中�
 	    </script>
 	</body>
 	</html>
+
+## 5.1 一个简单的view
+
+	var SearchView = Backbone.View.extend({
+	    initialize: function(){
+	        alert('init a SearchView');
+	    }
+	});
+	var searchView = new SearchView();
+
+是不是觉得很没有技术含量，所有的模块定义都一样。
+
+## 5.2 el属性
+
+这个属性用来引用DOM中的某个元素，每一个Backbone的view都会有这么个属性，如果没有显示声明，Backbone会默认的构造一个，表示一个空的div元素。el标签可以在定义view的时候在属性中声明，也可以在实例化view的时候通过参数传递。
+
+	var SearchView = Backbone.View.extend({
+	    initialize: function(){
+	        alert('init a SearchView');
+	    }
+	});
+	
+	var searchView = new SearchView({el: $("#search_container")});
+
+这段代码简单的演示了在实例化的时候传递el属性给View。下面我们来看看模板的渲染。
+
+	var SearchView = Backbone.View.extend({
+	    initialize: function(){
+	    },
+	    render: function(context) {
+	        //使用underscore这个库，来编译模板
+	        var template = _.template($("#search_template").html());
+	        //加载模板到对应的el属性中
+	        $(this.el).html(template(context));
+	    }
+	});
+	var searchView = new SearchView({el: $("#search_container")});
+	
+	//这个reander的方法可以放到view的构造函数中
+	//这样初始化时就会自动渲染
+	searchView.render({search_label: "搜索渲染"});
+
+运行页面之后，会发现script模板中的html代码已经添加到了我们定义的div中。
+
+这里面需要注意的是在模板中定义的所有变量必须在render的时候传递参数过去，不然就会报错。 关于el还有一个东西叫做$el,这个东西是对view中元素的缓存。
+
+## 5.3 再来看view中event的使用
+
+页面上的操作除了可以由之前的router来处理之外，在一个view中定义元素，还可以使用event来进行事件绑定。这里要注意的是在view中定义的dom元素是指你el标签所定义的那一部分dom节点，event进行事件绑定时会在该节点范围内查找。
+
+来，继续看代码。
+
+	var SearchView = Backbone.View.extend({
+	    el: "#search_container",
+	
+	    initialize: function(){
+	        this.render({search_label: "搜索按钮"});
+	    },
+	    render: function(context) {
+	        //使用underscore这个库，来编译模板
+	        var template = _.template($("#search_template").html());
+	        //加载模板到对应的el属性中
+	        $(this.el).html(template(context));
+	    },
+	
+	    events:{  //就是在这里绑定的
+	        //定义类型为button的input标签的点击事件，触发函数doSearch
+	        'click input[type=button]' : 'doSearch'
+	
+	    },
+	
+	    doSearch: function(event){
+	        alert("search for " + $("#search_input").val());
+	    }
+	
+	});
+	
+	var searchView = new SearchView();
+
+自己运行下，是不是比写$("input[type=button]").bind('click',function(){})好看多了。
+
+
+## 5.4 View中的模板
+
+上面已经简单的演示了模板的用法，如果你用过django模板的话，你会发现模板差不多都是那么回事。上面只是简单的单个变量的渲染，那么逻辑部分怎么处理呢，下面来看下。
+
+把最开始定义的模板中的内容换成下面这个。
+
+	<ul>
+	<% _.each(labels, function(name) { %>
+	    <% if(name != "label2") {%>
+	    <li><%= name %></li>
+	    <% } %>
+	<% }); %>
+	</ul>
+
+下面是js代码
+	
+	var SearchView = Backbone.View.extend({
+	    el: "#search_container",
+	
+	    initialize: function(){
+	        var labels = ['label1', 'label2', 'label3'];
+	        this.render({labels: labels});
+	    },
+	
+	    render: function(context) {
+	        //使用underscore这个库，来编译模板
+	        var template = _.template($("#search_template").html());
+	        //加载模板到对应的el属性中
+	        $(this.el).html(template(context));
+	    },
+	
+	});
+	
+	var searchView = new SearchView();
+
+再次运行，有木有觉得还不错，模板中使用的就基本的js语法。
+
+总结一下，关于view中的东西就介绍这么多，文档上还有几个其他的属性，不过大体用法都一致。在以后的实践中用到在介绍。
+
+# 第六章 实战演练：todos分析
+
+经过前面的几篇文章，Backbone中的Model, Collection，Router，View，都简单的介绍了一下，我觉得看完这几篇文章，差不多就能开始使用Backbone来做东西了，所有的项目无外乎对这几个模块的使用。不过对于实际项目经验少些的同学，要拿起来用估计会有些麻烦。因此这里就先找个现成的案例分析一下。
+
+## 6.1 获取代码
+
+todos的代码这里下载：[https://github.com/jashkenas/backbone/](https://github.com/jashkenas/backbone/) 
+建议自己clone一份到本地。
+线上的地址是：[http://backbonejs.org/examples/todos/index.html](http://backbonejs.org/examples/todos/index.html)
+
+用浏览器打开index.html文件，推荐使用chome浏览器，就可以看到和官网一样的界面了。关键代码都在todos.js这个文件里。
+
+![todo images](https://camo.githubusercontent.com/0152ae81d2a5ffc5682bfad0a81c6c3eff7766b6/687474703a2f2f7468653566697265626c6f672e62302e7570616979756e2e636f6d2f73746174696366696c652f746f646f732e706e67)
+
+从这个界面我们可以总结出来,下面这些功能:
+	* 任务管理
+	    添加任务
+	    修改任务
+	    删除任务
+	* 统计
+	    任务总计
+	    已完成数目
+
+这个项目仅仅是在web端运行的，没有服务器进行支持，因此在项目中使用了一个叫做backbone-localstorage的js库，用来把数据存储到前端。
+
+## 6.2从模型下手
+因为Backbone为MVC模式，根据对这种模式的使用经验，我们从模型开始分析。首先我们来看Model部分的代码:
+
+	/*global Backbone */
+	var app = app || {};
+	
+	(function () {
+		'use strict';
+	
+		// Todo Model
+		// ----------
+	
+		/**
+		*基本的Todo模型，属性为：title,done。
+		**/
+		app.Todo = Backbone.Model.extend({
+			// 设置默认的属性
+			defaults: {
+				title: '',
+				completed: false
+			},
+	
+			// 设置任务完成状态
+			toggle: function () {
+				this.save({
+					completed: !this.get('completed')
+				});
+	
+				console.log('model completed' + this.get('completed'))
+			}
+		});
+	})();
+
+
+这段代码是很好理解的，不过我依然是画蛇添足的加上了一些注释。这个Todo显然就是对应页面上的每一个任务条目。那么显然应该有一个collection来统治（管理）所有的任务，所以再来看collection：
+
+	/*global Backbone */
+	var app = app || {};
+	
+	(function () {
+		'use strict';
+	
+		// Todo Collection
+		// ---------------
+	
+		// Todo的一个集合，数据通过localStorage存储在本地。
+		// server.
+		var Todos = Backbone.Collection.extend({
+			// 设置Collection的模型为Todo
+			model: app.Todo,
+	
+			//存储到浏览器，以todos-backbone命名的空间中
+	    //此函数为Backbone插件提供
+	    //地址：https://github.com/jeromegn/Backbone.localStorage
+			localStorage: new Backbone.LocalStorage('todos-backbone'),
+	
+			//获取所有已经完成的任务数组
+			completed: function () {
+				return this.where({completed: true});
+			},
+	
+			//获取任务列表中未完成的任务数组
+	    //参考文档：http://backbonejs.org/#Collection-where
+			remaining: function () {
+				return this.where({completed: false});
+			},
+	
+			//获得下一个任务的排序序号，通过数据库中的记录数加1实现。
+			nextOrder: function () {
+				// last获取collection中最后一个元素
+				return this.length ? this.last().get('order') + 1 : 1;
+			},
+	
+			//Backbone内置属性，指明collection的排序规则。
+			comparator: 'order'
+		});
+	
+		// 创建一个全局的Todo的collection对象
+		app.todos = new Todos();
+	})();
+
+collection的主要功能有以下几个：
+	
+	1、获取完成的任务;
+	2、获取未完成的任务;
+	3、获取下一个要插入数据的序号;
+	4、按序存放Todo对象。
