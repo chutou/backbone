@@ -1,7 +1,12 @@
 # 第一章 Hello Backbonejs
 
 ----------
+
 ## 1.1 基础概念
+
+请切换至
+
+	step-0 中 helloworld.html
 
 Backbone，英文意思是：勇气， 脊骨，但是在程序里面，尤其是在Backbone后面加上后缀js之后，它就变成了一个框架，一个js库。
 
@@ -33,14 +38,13 @@ Backbone.js提供了一套web开发的框架，通过Models进行key-value绑定
 
 这个demo的主要功能是点击页面上得“新手报到”按钮，弹出对话框，输入内容之后，把内容拼上固定的字符串显示到页面上。事件触发的逻辑是： click 触发checkIn方法，然后checkIn构造World对象放到已经初始化worlds这个collection中。
 
-来看完整的代码:
+# 第二章 Backbonejs中的Model实践
+--------
+
 
 请切换至
 
-	step-0 中 helloworld.html
-
-# 第二章 Backbonejs中的Model实践
---------
+	step-1 中 model.html
 
 上一章主要是通过简单的代码对Backbonejs做了一个概括的展示，这一章开始从Model层说起，详细解释Backbonejs中的Model这个东西。
 
@@ -54,9 +58,6 @@ Model这个概念在我的印象中是来自于MVC这个东西，Model在其中�
 
 先定义一个页面结构，实践时须在注释的地方填上各小节的代码
 
-请切换至
-
-	step-1 中 model.html
 > 
     <!DOCTYPE html>
 	<html>
@@ -199,6 +200,10 @@ Model这个概念在我的印象中是来自于MVC这个东西，Model在其中�
 # 第三章 Backbonejs中的Collections实践
 -------
 
+请切换至
+
+	step-2 中 collection.html
+
 上一节介绍了model的使用，model算是对现实中某一物体的抽象，比如你可以定义一本书的model，具有书名（title）还有书页（page_num)等属性。仅仅用一个Model是不足以呈现现实世界的内容，因此基于Model，这节我们来看collection。collection是model对象的一个有序的集合，也可以理解为是model的容器。概念理解起来十分简单，在通过几个例子来看一下，会觉得更容易理解。
 
 ## 3.1 关于book和bookshelf的例子
@@ -239,13 +244,14 @@ Model这个概念在我的印象中是来自于MVC这个东西，Model在其中�
 	    alert(book.get('title'));
 	});
 
-请切换至
-
-	step-2 中 collection.html
 
 
 # 第四章 Backbonejs中的Router实践
 --------
+
+请切换至
+
+	step-3 中 router.html 查看
 
 前面介绍了Model和Collection，基本上属于程序中静态的数据部分。这一节介绍Backbone中的router，属于动态的部分，见名知意，router——路由的意思，显然是能够控制url指向哪个函数的。具体是怎么做的一会通过几个实例来看看。
 
@@ -380,9 +386,11 @@ Model这个概念在我的印象中是来自于MVC这个东西，Model在其中�
 
 这里需要解释的是navigate后面的两个参数。trigger表示触发事件，如果为false，则只是url变化，并不会触发事件，replace表示url替换，而不是前进到这个url，意味着启用该参数，浏览器的history不会记录这个变动。
 
-	step-3 中 router.html
-
 # 第五章 Backbonejs中的View实践
+
+请切换至
+
+	step-4 中 view.html 查看代码
 
 前面介绍了存放数据的Model和Collection以及对用户行为进行路由分发的Router（针对链接）。这一节终于可以往页面上放点东西来玩玩了。这节就介绍了Backbone中得View这个模块。Backbone的View是用来显示你的model中的数据到页面的，同时它也可用来监听DOM上的事件然后做出响应。但是这里要提一句的是，相比于Angularjs中model变化之后页面数据自动变化的特性，Backbone要手动来处理。至于这两种方式的对比，各有优劣，可以暂时不关心。
 
@@ -527,6 +535,10 @@ Model这个概念在我的印象中是来自于MVC这个东西，Model在其中�
 
 # 第六章 实战演练：todos分析
 
+请切换至
+
+	step-5 中 index.html 查看代码
+
 经过前面的几篇文章，Backbone中的Model, Collection，Router，View，都简单的介绍了一下，我觉得看完这几篇文章，差不多就能开始使用Backbone来做东西了，所有的项目无外乎对这几个模块的使用。不过对于实际项目经验少些的同学，要拿起来用估计会有些麻烦。因此这里就先找个现成的案例分析一下。
 
 ## 6.1 获取代码
@@ -551,7 +563,91 @@ todos的代码这里下载：[https://github.com/jashkenas/backbone/](https://gi
 
 这个项目仅仅是在web端运行的，没有服务器进行支持，因此在项目中使用了一个叫做backbone-localstorage的js库，用来把数据存储到前端。
 
-## 6.2从模型下手
+## 6.2 路由配置
+	
+	/*global Backbone */
+	var app = app || {};
+	
+	(function () {
+		'use strict';
+	
+		// Todo Router
+		// ----------
+		var TodoRouter = Backbone.Router.extend({
+			routes: {
+				// 匹配路由，* 匹配所有地址
+				'*filter': 'setFilter'
+			},
+	
+			setFilter: function (param) {
+				// Set the current filter to be used
+				app.TodoFilter = param || '';
+	
+				// Trigger a collection filter event, causing hiding/unhiding
+				// of Todo view items
+				// 匹配成功，会触发app.todos 'filter' this.filterAll函数 
+				app.todos.trigger('filter');
+			}
+		});
+	
+		app.TodoRouter = new TodoRouter();
+		Backbone.history.start();
+	})();
+
+##6.3 页面布局html代码
+
+	<!doctype html>
+	<html lang="en" data-framework="backbonejs">
+		<head>
+			<meta charset="utf-8">
+			<title>Backbone.js • TodoMVC</title>
+			<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
+			<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
+			<style type="text/css">
+				.todo-list li button.edit-btn{
+					display: none;
+				}
+				.todo-list li:hover button.edit-btn{
+					display: block;
+					height: 40px;
+					width: 40px;
+					position: absolute;
+					top: 0;
+					right: 50px;
+					bottom: 0;
+					background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAnFBMVEUAAAB/f39VVVU/f39mZmZIbW1fX39UcXFMZn9bbX9UbXlRaH9Ta3pUbHpTb3hUbXhTbHpTbHlTbHpUbXpUbXpUbXlUbnpUbXpSbXhSbnlUbnlTbXlUbXlTbnpUbXpTbnhUbXhUbnpTbXpUbnlTbnlUbXlUbHlSbXpUbHpUbnpUbHpSbnpUbHhTbXhTbHpUbnlSbHlSbnpSbHpUbHgGNdXDAAAANHRSTlMAAgMEBQcICQoOFRY0NjdISVJucHmClJqhpKaoqquztLi5uru9v8HGyM7T1dri6Onr8Pb7ls2umQAAAHRJREFUGFddx+sCgTAABtDPRkVsKsUo6Z5LC73/u/nDLs6/AyhuOrW+LtxSePFtpe6UFQHiWj+XHFi+1QVhktPs8H0hCMBkky+MgxZ/z36/2J+d7WPX25+/xq15bK5s5I4+ogTs+TiqIxX7+xBA607hmhr/ADYjCc2SbhlgAAAAAElFTkSuQmCC) no-repeat center 18px;
+				}
+			</style>
+		</head>
+		<body>
+			<section class="todoapp">
+				<header class="header">
+					<h1>todos</h1>
+					<input class="new-todo" placeholder="What needs to be done?" autofocus>
+				</header>
+				<section class="main">
+					<input class="toggle-all" type="checkbox">
+					<label for="toggle-all">Mark all as complete</label>
+					<ul class="todo-list"></ul>
+				</section>
+				<footer class="footer"></footer>
+			</section>
+			<script src="node_modules/todomvc-common/base.js"></script>
+			<script src="node_modules/jquery/dist/jquery.js"></script>
+			<script src="node_modules/underscore/underscore.js"></script>
+			<script src="node_modules/backbone/backbone.js"></script>
+			<script src="node_modules/backbone.localstorage/backbone.localStorage.js"></script>
+			<script src="js/models/todo.js"></script>
+			<script src="js/collections/todos.js"></script>
+			<script src="js/views/todo-view.js"></script>
+			<script src="js/views/app-view.js"></script>
+			<script src="js/routers/router.js"></script>
+			<script src="js/app.js"></script>
+		</body>
+	</html>
+
+
+## 6.4从模型下手
 因为Backbone为MVC模式，根据对这种模式的使用经验，我们从模型开始分析。首先我们来看Model部分的代码:
 
 	/*global Backbone */
