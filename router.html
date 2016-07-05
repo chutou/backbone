@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>backbone router</title>
+</head>
+
+<body>
+	<div><a href="#/download/user/images/hey.gif">download gif</a></div>
+	<div><a href="#/dashboard/graph">Load Route/Action View</a></div>
+	<div><a href="#/router/2">router</a></div>
+	<div><a href="#/actions">actions</a></div>
+	<div><a href="#/manual">manual</a></div>
+    <script src="node_modules/jquery/dist/jquery.js"></script>
+    <script src="node_modules/underscore/underscore.js"></script>
+    <script src="node_modules/backbone/backbone.js"></script>
+    <script>
+    (function($) {
+
+        var AppRouter = Backbone.Router.extend({
+
+            routes: {
+                "posts/:id": "getPost",
+                //下面对应的链接为<a href="#/download/user/images/hey.gif">download gif</a>
+                "download/*path": "downloadFile",
+                //下面对应的链接为<a href="#/dashboard/graph">Load Route/Action View</a>
+                ":route/:action": "loadView",
+                "manual": "manual",
+                "*actions": "defaultRoute"
+            },
+
+            getPost: function(id) {
+                $('body').append(id+ '<br />');
+            },
+
+            defaultRoute: function(actions) {
+                $('body').append(actions+ '<br />');
+            },
+
+            downloadFile: function(path) {
+                $('body').append(path+ '<br />'); // user/images/hey.gif
+            },
+
+            loadView: function(route, action) {
+                $('body').append(route + '-' + action + '<br />'); // dashboard_graph
+            },
+            manual: function() {
+                $('body').append("call manual"+ '<br />');
+                app_router.navigate("/posts/" + 404, {
+                    trigger: true,
+                    replace: true
+                });
+            }
+
+        });
+
+        var app_router = new AppRouter;
+        Backbone.history.start();
+
+    })(jQuery);
+    </script>
+</body>
+
+</html>
