@@ -549,7 +549,7 @@ todos的代码这里下载：[https://github.com/jashkenas/backbone/](https://gi
 
 用浏览器打开index.html文件，推荐使用chome浏览器，就可以看到和官网一样的界面了。关键代码都在todos.js这个文件里。
 
-![todo images](https://camo.githubusercontent.com/0152ae81d2a5ffc5682bfad0a81c6c3eff7766b6/687474703a2f2f7468653566697265626c6f672e62302e7570616979756e2e636f6d2f73746174696366696c652f746f646f732e706e67)
+![backbone demo](http://i.imgur.com/mz2bD7L.png)
 
 从这个界面我们可以总结出来,下面这些功能:
 
