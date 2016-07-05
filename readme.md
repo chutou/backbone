@@ -633,6 +633,11 @@ todos的代码这里下载：[https://github.com/jashkenas/backbone/](https://gi
 
 
 ## 6.4从模型下手
+
+请切换至
+
+	step-6 中 index.html 查看代码
+
 因为Backbone为MVC模式，根据对这种模式的使用经验，我们从模型开始分析。首先我们来看Model部分的代码:
 
 	/*global Backbone */
@@ -721,6 +726,10 @@ collection的主要功能有以下几个：
 	4、按序存放Todo对象。
 
 # 第七章 实战演练：todos分析 View的应用
+
+请切换至
+
+	step-7 中 index.html 查看代码
 
 在上一篇文章中我们把todos这个实例的数据模型进行了简单的分析，有关于数据模型的操作也都知道了。接着我们来看剩下的两个view的模型，以及它们对页面的操作。
 
@@ -1024,6 +1033,10 @@ TodoView是和Model一对一的关系，在页面上一个View也就展示为一
 
 
 ## 7.4 页面模板分析
+
+请切换至
+
+	step-8 中 index.html 查看代码
 
 在前几篇的view介绍中我们已经认识过了简单的模板使用，以及变量参数的传递，如：
 
