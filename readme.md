@@ -540,6 +540,7 @@ todos的代码这里下载：[https://github.com/jashkenas/backbone/](https://gi
 ![todo images](https://camo.githubusercontent.com/0152ae81d2a5ffc5682bfad0a81c6c3eff7766b6/687474703a2f2f7468653566697265626c6f672e62302e7570616979756e2e636f6d2f73746174696366696c652f746f646f732e706e67)
 
 从这个界面我们可以总结出来,下面这些功能:
+
 	* 任务管理
 	    添加任务
 	    修改任务
@@ -637,3 +638,325 @@ collection的主要功能有以下几个：
 	2、获取未完成的任务;
 	3、获取下一个要插入数据的序号;
 	4、按序存放Todo对象。
+
+# 第七章 实战演练：todos分析 View的应用
+
+在上一篇文章中我们把todos这个实例的数据模型进行了简单的分析，有关于数据模型的操作也都知道了。接着我们来看剩下的两个view的模型，以及它们对页面的操作。
+
+## 7.1 为什么要两个view
+
+首先要分析下，这俩view是用来干嘛的。有人可能会问了，这里不就是一个页面吗？一个view掌控全局不就完了？
+
+我觉得这就是新手和老手的主要区别之一，喜欢在一个方法里面搞定一切，喜欢把东西都拧到一块去，觉得这样看起来容易。熟不知，这样的代码对于日后的扩展会造成很大的麻烦。因此我们需要学习下优秀的设计，从好的代码中汲取营养。
+
+这里面的精华就是，将对数据的操作和对页面的操作进行分离，也就是现在代码里面TodoView和AppView。前者的作用是对把Model中的数据渲染到模板中;后者是对已经渲染好的数据进行处理。两者各有分工，TodoView可以看做是加工后的数据，这个数据就是待使用的html数据。
+
+## 7.2 TodoView的代码分析
+
+TodoView是和Model一对一的关系，在页面上一个View也就展示为一个item。除此之外，每个view上还有其他的功能，比如编辑模式，展示模式，还有对用户的输入的监听。详细还是来看下代码：
+
+	/*global Backbone, jQuery, _, ENTER_KEY, ESC_KEY */
+	var app = app || {};
+	
+	(function ($) {
+		'use strict';
+	
+		// Todo Item View
+		// --------------
+	
+		// The DOM element for a todo item...
+		app.TodoView = Backbone.View.extend({
+			//下面这个标签的作用是，把template模板中获取到的html代码放到这标签中。
+			tagName:  'li',
+	
+			// 获取一个任务条目的模板,缓存到这个属性上。
+			template: _.template($('#item-template').html()),
+	
+			// 为每一个任务条目绑定事件
+			events: {
+				'click .toggle': 'toggleCompleted',
+				'dblclick label': 'edit',
+				'click .destroy': 'clear',
+				'keypress .edit': 'updateOnEnter',
+				'keydown .edit': 'revertOnEscape',
+				'blur .edit': 'close',
+				//新增点击进行编辑
+				'click .edit-btn': 'edit'
+			},
+	
+			//在初始化时设置对model的change事件的监听
+			//设置对model是否显示隐藏
+	    //设置对model的destroy的监听，保证页面数据和model数据一致
+			initialize: function () {
+				this.listenTo(this.model, 'change', this.render);
+				this.listenTo(this.model, 'destroy', this.remove);
+				this.listenTo(this.model, 'visible', this.toggleVisible);
+			},
+	
+			// 渲染todo中的数据到 item-template 中，然后返回对自己的引用this
+			render: function () {
+				// Backbone LocalStorage is adding `id` attribute instantly after
+				// creating a model.  This causes our TodoView to render twice. Once
+				// after creating a model and once on `id` change.  We want to
+				// filter out the second redundant render, which is caused by this
+				// `id` change.  It's known Backbone LocalStorage bug, therefore
+				// we've to create a workaround.
+				// https://github.com/tastejs/todomvc/issues/469
+				if (this.model.changed.id !== undefined) {
+					return;
+				}
+	
+				this.$el.html(this.template(this.model.toJSON()));
+				this.$el.toggleClass('completed', this.model.get('completed'));
+				this.toggleVisible();
+				this.$input = this.$('.edit');
+				return this;
+			},
+			// 控制任务隐藏显示
+			toggleVisible: function () {
+				this.$el.toggleClass('hidden', this.isHidden());
+			},
+			//隐藏时做数据判断
+			isHidden: function () {
+				return this.model.get('completed') ?
+					app.TodoFilter === 'active' :
+					app.TodoFilter === 'completed';
+			},
+	
+			// 控制任务完成或者未完成
+			toggleCompleted: function () {
+				this.model.toggle();
+			},
+	
+			// 修改任务条目的样式和input选中
+			edit: function () {
+				this.$el.addClass('editing');
+				this.$input.focus();
+			},
+	
+			// 关闭编辑模式，并把修改内容同步到Model和界面
+			close: function () {
+				var value = this.$input.val();
+				var trimmedValue = value.trim();
+	
+				// We don't want to handle blur events from an item that is no
+				// longer being edited. Relying on the CSS class here has the
+				// benefit of us not having to maintain state in the DOM and the
+				// JavaScript logic.
+				if (!this.$el.hasClass('editing')) {
+					return;
+				}
+	
+				if (trimmedValue) {
+					//有值内容保存到localstore
+					this.model.save({ title: trimmedValue });
+				} else {
+					//无值内容直接从页面清除
+					this.clear();
+				}
+	
+				this.$el.removeClass('editing');
+			},
+	
+			// 按下回车之后，关闭编辑模式
+			updateOnEnter: function (e) {
+				if (e.which === ENTER_KEY) {
+					this.close();
+				}
+			},
+	
+			// 按下esc键 关闭编辑模式
+			revertOnEscape: function (e) {
+				if (e.which === ESC_KEY) {
+					this.$el.removeClass('editing');
+					// Also reset the hidden input back to the original value.
+					this.$input.val(this.model.get('title'));
+				}
+			},
+	
+			// 移除对应条目，以及对应的数据对象
+			clear: function () {
+				this.model.destroy();
+			}
+		});
+	})(jQuery);
+
+
+## 7.3 AppView的代码分析
+
+再来看AppView，功能是显示所有任务列表，显示整体的列表状态（如：完成多少，未完成多少）
+
+	/*global Backbone, jQuery, _, ENTER_KEY */
+	var app = app || {};
+	
+	(function ($) {
+		'use strict';
+	
+		// The Application
+		// ---------------
+	
+		//主要是整体上的一个控制
+		app.AppView = Backbone.View.extend({
+	
+			//绑定页面上主要的DOM节点
+			el: '.todoapp',
+	
+			// 在底部显示的统计数据模板
+			statsTemplate: _.template($('#stats-template').html()),
+	
+			// 绑定dom节点上的事件
+			events: {
+				'keypress .new-todo': 'createOnEnter',
+				'click .clear-completed': 'clearCompleted',
+				'click .toggle-all': 'toggleAllComplete'
+			},
+	
+			//在初始化过程中，绑定事件到Todos上，
+	    //当任务列表改变时会触发对应的事件。
+	    //最后从localStorage中fetch数据到Todos中。
+			initialize: function () {
+				this.allCheckbox = this.$('.toggle-all')[0];
+				this.$input = this.$('.new-todo');
+				this.$footer = this.$('.footer');
+				this.$main = this.$('.main');
+				this.$list = $('.todo-list');
+	
+				this.listenTo(app.todos, 'add', this.addOne);
+				this.listenTo(app.todos, 'reset', this.addAll);
+				this.listenTo(app.todos, 'change:completed', this.filterOne);
+				this.listenTo(app.todos, 'filter', this.filterAll);
+				// 返回 render 函数, 将延迟函数的执行(真正的执行)在函数最后一次调用时刻的 wait 0 毫秒之后
+				this.listenTo(app.todos, 'all', _.debounce(this.render, 0));
+	
+				// Suppresses 'add' events with {reset: true} and prevents the app view
+				// from being re-rendered for every model. Only renders when the 'reset'
+				// event is triggered at the end of the fetch.
+				app.todos.fetch({reset: true});
+			},
+	
+			// 更改当前任务列表的状态
+			render: function () {
+				var completed = app.todos.completed().length;
+				var remaining = app.todos.remaining().length;
+				console.log('completed'+ completed);
+				if (app.todos.length) {
+					this.$main.show();
+					this.$footer.show();
+	
+					this.$footer.html(this.statsTemplate({
+						completed: completed,
+						remaining: remaining
+					}));
+					// filters a 标签选中效果处理
+					this.$('.filters li a')
+						//先移除a标签的选中效果
+						.removeClass('selected')
+						//再查找相应a标签值给它添加选中效果
+						.filter('[href="#/' + (app.TodoFilter || '') + '"]')
+						.addClass('selected');
+				} else {
+					this.$main.hide();
+					this.$footer.hide();
+				}
+				//根据剩余多少未完成确定标记全部完成的checkbox的显示
+				this.allCheckbox.checked = !remaining;
+			},
+	
+			// 添加一个任务到页面id为todo-list的ul中
+			addOne: function (todo) {
+				var view = new app.TodoView({ model: todo });
+				this.$list.append(view.render().el);
+			},
+	
+			// 首先清空ul#todo-list中的数据，把Todos中的所有数据渲染到页面,页面加载的时候用到
+			addAll: function () {
+				this.$list.html('');
+				app.todos.each(this.addOne, this);
+			},
+	
+			// 改变状态，设置完成时，隐藏
+			filterOne: function (todo) {
+				todo.trigger('visible');
+			},
+	
+			// 遍历状态，将所有已完成的隐藏
+			filterAll: function () {
+				app.todos.each(this.filterOne, this);
+			},
+	
+			//生成一个新Todo的所有属性的字典
+			newAttributes: function () {
+				return {
+					title: this.$input.val().trim(),
+					order: app.todos.nextOrder(),
+					completed: false
+				};
+			},
+	
+			//创建一个任务的方法，使用backbone.collection的create方法。
+	    //将数据保存到localStorage,这是一个html5的js库。
+	    //需要浏览器支持html5才能用。
+			createOnEnter: function (e) {
+				if (e.which === ENTER_KEY && this.$input.val().trim()) {
+					app.todos.create(this.newAttributes());
+					this.$input.val('');
+				}
+			},
+	
+			//去掉所有已经完成的任务
+			clearCompleted: function () {
+				// invoke,任何已完成的列表都会执行destroy
+				_.invoke(app.todos.completed(), 'destroy');
+				return false;
+			},
+	
+			//处理页面点击标记全部完成按钮
+	    //处理逻辑：
+	    //    如果标记全部按钮已选，则所有都完成
+	    //    如果未选，则所有的都未完成。
+			toggleAllComplete: function () {
+				var completed = this.allCheckbox.checked;
+	
+				app.todos.each(function (todo) {
+					todo.save({
+						completed: completed
+					});
+				});
+			}
+		});
+	})(jQuery);
+
+
+## 7.4 页面模板分析
+
+在前几篇的view介绍中我们已经认识过了简单的模板使用，以及变量参数的传递，如：
+
+	<script type="text/template" id="item-template">
+			<div class="view">
+				<input class="toggle" type="checkbox" <%= completed ? 'checked' : '' %>>
+				<label><%- title %></label>
+				<button class="edit-btn"></button>
+				<button class="destroy"></button>
+			</div>
+			<input class="edit" value="<%- title %>">
+		</script>
+		<script type="text/template" id="stats-template">
+			<span class="todo-count"><strong><%= remaining %></strong> <%= remaining === 1 ? 'item' : 'items' %> left</span>
+			<ul class="filters">
+				<li>
+					<a class="selected" href="#/">All</a>
+				</li>
+				<li>
+					<a href="#/active">Active</a>
+				</li>
+				<li>
+					<a href="#/completed">Completed</a>
+				</li>
+			</ul>
+			<% if (completed) { %>
+			<span style="float: right"><%= completed %></span>
+			<button class="clear-completed">Clear completed</button>
+			<% } %>
+		</script>
+
+文章中我们了解到在todos这个实例中，view的使用，以及具体的TodoView和AppView中各个函数的作用，这意味着所有的肉和菜都已经放到你碗里了，下面就是如何吃下去的问题了
