@@ -603,21 +603,6 @@ todos的代码这里下载：[https://github.com/jashkenas/backbone/](https://gi
 			<title>Backbone.js • TodoMVC</title>
 			<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
 			<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
-			<style type="text/css">
-				.todo-list li button.edit-btn{
-					display: none;
-				}
-				.todo-list li:hover button.edit-btn{
-					display: block;
-					height: 40px;
-					width: 40px;
-					position: absolute;
-					top: 0;
-					right: 50px;
-					bottom: 0;
-					background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAnFBMVEUAAAB/f39VVVU/f39mZmZIbW1fX39UcXFMZn9bbX9UbXlRaH9Ta3pUbHpTb3hUbXhTbHpTbHlTbHpUbXpUbXpUbXlUbnpUbXpSbXhSbnlUbnlTbXlUbXlTbnpUbXpTbnhUbXhUbnpTbXpUbnlTbnlUbXlUbHlSbXpUbHpUbnpUbHpSbnpUbHhTbXhTbHpUbnlSbHlSbnpSbHpUbHgGNdXDAAAANHRSTlMAAgMEBQcICQoOFRY0NjdISVJucHmClJqhpKaoqquztLi5uru9v8HGyM7T1dri6Onr8Pb7ls2umQAAAHRJREFUGFddx+sCgTAABtDPRkVsKsUo6Z5LC73/u/nDLs6/AyhuOrW+LtxSePFtpe6UFQHiWj+XHFi+1QVhktPs8H0hCMBkky+MgxZ/z36/2J+d7WPX25+/xq15bK5s5I4+ogTs+TiqIxX7+xBA607hmhr/ADYjCc2SbhlgAAAAAElFTkSuQmCC) no-repeat center 18px;
-				}
-			</style>
 		</head>
 		<body>
 			<section class="todoapp">
