@@ -694,6 +694,7 @@ todos的代码这里下载：[https://github.com/jashkenas/backbone/](https://gi
 			localStorage: new Backbone.LocalStorage('todos-backbone'),
 	
 			//获取所有已经完成的任务数组
+			// 参考http://www.css88.com/doc/backbone/#Collection-comparator
 			completed: function () {
 				return this.where({completed: true});
 			},
